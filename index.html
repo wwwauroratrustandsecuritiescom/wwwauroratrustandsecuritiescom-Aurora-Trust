@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Aurora Trust • Secure Wealth Portal</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --primary-dark: #0A2540;
+      --primary-royal: #1E3A8A;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0A2540;
+      --text-secondary: #64748B;
+      --border: #E2E8F0;
+      --success: #10B981;
+      --error: #EF4444;
+      --radius: 1rem;
+      --shadow-sm: 0 0.125rem 0.5rem rgba(0,0,0,0.04);
+      --shadow-md: 0 0.25rem 1rem rgba(0,0,0,0.06);
+      font-size: 16px;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
+    }
+    #app {
+      width: 100%;
+      max-width: 480px;
+      background: var(--bg);
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+      box-shadow: 0 0 1.875rem rgba(0,0,0,0.05);
+    }
+
+    /* Login Screen Styling */
+    .login-overlay {
+      position: fixed; inset:0;
+      background: linear-gradient(135deg, var(--surface), var(--bg));
+      display:flex; align-items:center; justify-content:center;
+      z-index:9999;
+    }
+    .login-card {
+      background: var(--surface); border:1px solid var(--border);
+      border-radius: var(--radius); padding:2rem 1.5rem;
+      width:90%; max-width:21.25rem; box-shadow: var(--shadow-md);
+      text-align:center;
+    }
+    .login-logo {
+      width: 4.5rem;
+      height: 4.5rem;
+      object-fit: cover;
+      border-radius: 0.75rem;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .login-card h2 { color:var(--primary-dark); font-weight:700; font-size:1.8rem; margin-bottom:0.5rem; }
+    .login-card p { color:var(--text-secondary); margin-bottom:1.5rem; font-size:0.9rem; }
+    .input-group { margin-bottom:1rem; text-align:left; }
+    .input-group label {
+      font-size:0.7rem; text-transform:uppercase; letter-spacing:0.5px;
+      color:var(--primary-dark); font-weight:600; display:block; margin-bottom:0.3rem;
+    }
+    .input-group input {
+      width:100%; padding:0.9rem 1rem; background: var(--bg);
+      border:1px solid var(--border); border-radius:0.75rem; font-size:1rem; outline:none;
+    }
+    .btn {
+      width:100%; padding:0.9rem; border:none; border-radius:0.75rem;
+      background: var(--primary-royal); color:white; font-weight:600;
+      font-size:1rem; cursor:pointer; box-shadow: 0 0.25rem 0.75rem rgba(30,58,138,0.2);
+      min-height: 3rem;
+    }
+    .btn:hover { background: #1e40af; }
+    .error { color:var(--error); font-size:0.8rem; min-height:1.2rem; margin-top:0.5rem; }
+
+    /* Header Styling */
+    .mobile-header {
+      position:sticky; top:0; z-index:20;
+      background: var(--surface); border-bottom:1px solid var(--border);
+      padding:0.75rem 1rem; display:flex; align-items:center; justify-content:space-between;
+      box-shadow: var(--shadow-sm);
+    }
+    .mobile-header .brand-wrapper { display: flex; align-items: center; gap: 0.5rem; }
+    .mobile-header .brand-logo { width: 1.75rem; height: 1.75rem; object-fit: cover; border-radius: 0.25rem; }
+    .mobile-header .brand { font-size:1.3rem; font-weight:700; color:var(--primary-dark); }
+    .mobile-header .icons i { font-size:1.2rem; color:var(--text-secondary); margin-left:1.2rem; cursor:pointer; position: relative; }
+    .mobile-header .icons i.unread::after {
+      content: ''; position: absolute; top: -2px; right: -2px; width: 6px; height: 6px; background: var(--error); border-radius: 50%;
+    }
+    .hamburger { font-size:1.5rem; color:var(--primary-dark); cursor:pointer; background:none; border:none; padding:0.5rem; }
+
+    /* Profile Avatar Formatting */
+    .user-profile-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+    .profile-avatar-dashboard {
+      width: 4rem;
+      height: 4rem;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2.5px solid var(--border);
+    }
+    .drawer-profile-banner {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding-bottom: 1.25rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .drawer-avatar-img {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--primary-royal);
+    }
+    .drawer-meta h4 { color: #ffffff; font-size: 0.95rem; font-weight: 600; margin-bottom: 0.1rem; }
+    .drawer-meta p { color: #CBD5E1; font-size: 0.75rem; line-height: 1.3; }
+
+    /* Navigation Drawer */
+    .drawer-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,0.3); z-index:25;
+      opacity:0; pointer-events:none; transition:0.3s;
+    }
+    .drawer-overlay.open { opacity:1; pointer-events:auto; }
+    .drawer {
+      position:fixed; top:0; left:0; width:75%; max-width:280px; height:100vh;
+      background: var(--primary-dark); color:white; z-index:30; transform:translateX(-100%);
+      transition:0.3s; padding:1.5rem 1rem; display:flex; flex-direction:column;
+      overflow-y: auto;
+    }
+    .drawer.open { transform:translateX(0); }
+    .drawer .logo-wrapper { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; }
+    .drawer .logo-img { width: 1.75rem; height: 1.75rem; object-fit: cover; border-radius: 0.25rem; }
+    .drawer .logo { font-size:1.3rem; color: #ffffff; font-weight:700; }
+    .drawer-nav { list-style:none; flex:1; }
+    .drawer-nav li {
+      padding:0.8rem 1rem; margin:0.2rem 0; border-radius:0.75rem;
+      display:flex; align-items:center; gap:0.8rem; color:#CBD5E1; font-weight:500;
+      cursor:pointer; min-height:3rem;
+    }
+    .drawer-nav li i { width:1.2rem; text-align: center; }
+    .drawer-nav li:hover, .drawer-nav li.active { background:rgba(30,58,138,0.3); color:white; }
+    .logout-btn {
+      margin-top:auto; padding:1rem 1rem; color:#CBD5E1; cursor:pointer;
+      border-radius:0.75rem; display:flex; align-items:center; gap:0.5rem;
+      min-height:3rem;
+    }
+    .logout-btn:hover { background:rgba(239,68,68,0.2); color:var(--error); }
+
+    /* Layout Elements */
+    .main-content { padding:1rem 1rem 2rem; animation: fadeIn 0.2s; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(0.3rem); } to { opacity:1; transform:translateY(0); } }
+    .card {
+      background: var(--surface); border:1px solid var(--border);
+      border-radius: var(--radius); padding:1.2rem; margin-bottom:1rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .card h3 { font-size:1.1rem; color: var(--primary-dark); margin-bottom:0.75rem; font-weight:600; display:flex; align-items:center; gap:0.5rem; }
+    .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; }
+    .stat-card { text-align:center; padding:1rem 0.5rem; }
+    .stat-card h5 { font-size:0.65rem; text-transform:uppercase; color:var(--text-secondary); margin-bottom:0.4rem; letter-spacing:0.3px; }
+    .stat-card .amount { font-size:1.3rem; font-weight:800; color:var(--primary-dark); }
+    
+    /* Badges */
+    .badge {
+      display:inline-block; padding:0.2rem 0.7rem; border-radius:1.25rem;
+      font-size:0.65rem; font-weight:600; text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .badge-active { background:#D1FAE5; color:#065F46; }
+    .badge-pending { background:#FEF3C7; color:#92400E; }
+    .badge-restricted { background:#FEE2E2; color:#991B1B; }
+    .badge-verified { background:#D1FAE5; color:#065F46; }
+    .badge-info { background:#DBEAFE; color:#1E40AF; }
+
+    /* Accordion Structures */
+    .collapsible-header {
+      display:flex; justify-content:space-between; align-items:center;
+      cursor:pointer; font-weight:600; padding:0.2rem 0;
+      color: var(--primary-dark);
+    }
+    .collapsible-header i { transition:0.3s; }
+    .collapsible.open .collapsible-header i { transform:rotate(180deg); }
+    .collapsible-content { max-height:0; overflow:hidden; transition:max-height 0.4s ease-out; }
+    .collapsible.open .collapsible-content { max-height:35rem; margin-top: 0.75rem; }
+
+    /* Tables */
+    table { width:100%; border-collapse:collapse; font-size:0.8rem; margin-top:0.25rem; }
+    th, td { padding:0.75rem 0.5rem; border-bottom:1px solid var(--border); text-align:left; vertical-align: middle; }
+    th { color:var(--primary-dark); font-weight:600; text-transform:uppercase; font-size:0.65rem; letter-spacing: 0.3px; }
+    tr:last-child td { border-bottom: none; }
+
+    /* Forms & Toggles */
+    .settings-section { padding:0.5rem 0 1rem; border-bottom:1px solid var(--border); }
+    .settings-section:last-child { border-bottom:none; padding-bottom: 0; }
+    .settings-section h3 { font-size:1rem; color:var(--primary-dark); margin-bottom:0.8rem; }
+    .form-group { margin-bottom:0.8rem; }
+    .form-group label { font-size:0.7rem; text-transform:uppercase; color:var(--text-secondary); display:block; margin-bottom:0.2rem; font-weight:500; }
+    .form-group input {
+      width:100%; padding:0.75rem; border:1px solid var(--border);
+      border-radius:0.625rem; background: var(--bg); font-size:0.9rem; color: var(--primary-dark); outline: none;
+    }
+    .toggle-switch { display:flex; align-items:center; justify-content:space-between; padding:0.75rem 0; font-size: 0.9rem; }
+    .toggle-track {
+      width:2.75rem; height:1.5rem; background:#CBD5E1; border-radius:0.8125rem;
+      position:relative; cursor:pointer; transition:0.3s;
+    }
+    .toggle-track.active { background:var(--success); }
+    .toggle-track::after {
+      content:""; width:1.25rem; height:1.25rem; background:white;
+      border-radius:50%; position:absolute; top:0.125rem; left:0.125rem; transition:0.3s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .toggle-track.active::after { transform:translateX(1.25rem); }
+    
+    /* Interactive elements */
+    .interactive-row { cursor: pointer; transition: background 0.2s; }
+    .interactive-row:hover { background: #F8FAFC; }
+
+    /* Async Loader animation */
+    .loader-container {
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      padding:6rem 0;
+    }
+    .spinner {
+      width:2.5rem; height:2.5rem;
+      border:0.2rem solid rgba(30,58,138,0.1);
+      border-top-color: var(--primary-royal);
+      border-radius:50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom:1rem;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .loading-text { color:var(--text-secondary); font-size:0.85rem; letter-spacing: 0.2px; }
+
+    .greeting { font-size: 1.1rem; color: var(--text-secondary); font-weight: 400; }
+    canvas { max-height:12.5rem; margin: 0.5rem auto 0; }
+
+    @media (pointer: coarse) {
+      .btn, .drawer-nav li, .logout-btn, .hamburger { min-height: 3rem; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Authentication Interface -->
+  <div class="login-overlay" id="loginScreen">
+    <div class="login-card">
+      <img src="logo.png" alt="Aurora Trust Logo" class="login-logo">
+      <h2>Aurora Trust</h2>
+      <p>Private Wealth Management Portal</p>
+      <div class="input-group"><label>Username</label><input id="usernameInput" type="email" placeholder="name@domain.com" autocomplete="username"></div>
+      <div class="input-group"><label>Password</label><input id="passwordInput" type="password" placeholder="············" autocomplete="current-password"></div>
+      <div class="error" id="loginError"></div>
+      <button class="btn" onclick="login()">Sign In Secured Network</button>
+    </div>
+  </div>
+
+  <!-- Dashboard Shell -->
+  <div id="dashboard" style="display:none;">
+    <div class="mobile-header">
+      <button class="hamburger" onclick="toggleDrawer()">☰</button>
+      <div class="brand-wrapper">
+        <img src="logo.png" alt="Logo" class="brand-logo">
+        <span class="brand">Aurora Trust</span>
+      </div>
+      <div class="icons">
+        <i class="fas fa-bell unread" id="notifIcon" onclick="navigate('notifications')"></i>
+        <i class="fas fa-envelope unread" id="msgIcon" onclick="navigate('messages')"></i>
+        <i class="fas fa-shield-alt" style="color:var(--success);" onclick="navigate('security')"></i>
+      </div>
+    </div>
+
+    <!-- Background Navigation Overlay -->
+    <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+    
+    <!-- Sidebar Navigation Drawer -->
+    <div class="drawer" id="drawer">
+      <div class="logo-wrapper">
+        <img src="logo.png" alt="Logo" class="logo-img">
+        <div class="logo">Aurora Trust</div>
+      </div>
+
+      <div class="drawer-profile-banner">
+        <img src="photo.jpg" alt="Jerry H. Payne" class="drawer-avatar-img">
+        <div class="drawer-meta">
+          <h4>Jerry H. Payne</h4>
+          <p>ID: #AT-99042<br>Member Since: 1994</p>
+        </div>
+      </div>
+
+      <ul class="drawer-nav">
+        <li class="active" onclick="navigate('dashboard')"><i class="fas fa-th-large"></i> Dashboard</li>
+        <li onclick="navigate('portfolio')"><i class="fas fa-briefcase"></i> Portfolio</li>
+        <li onclick="navigate('assets')"><i class="fas fa-chart-pie"></i> Assets</li>
+        <li onclick="navigate('transactions')"><i class="fas fa-exchange-alt"></i> Transactions</li>
+        <li onclick="navigate('trust')"><i class="fas fa-gavel"></i> Trust Details</li>
+        <li onclick="navigate('beneficiaries')"><i class="fas fa-users"></i> Beneficiaries</li>
+        <li onclick="navigate('documents')"><i class="fas fa-folder-open"></i> Document Vault</li>
+        <li onclick="navigate('compliance')"><i class="fas fa-check-circle"></i> Compliance</li>
+        <li onclick="navigate('security')"><i class="fas fa-lock"></i> Security Center</li>
+        <li onclick="navigate('reports')"><i class="fas fa-file-alt"></i> Reports</li>
+        <li onclick="navigate('notifications')"><i class="fas fa-bell"></i> Notifications</li>
+        <li onclick="navigate('messages')"><i class="fas fa-envelope"></i> Messages</li>
+        <li onclick="navigate('support')"><i class="fas fa-headset"></i> Support</li>
+        <li onclick="navigate('settings')"><i class="fas fa-cog"></i> Settings</li>
+      </ul>
+      <div class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sign Out</div>
+    </div>
+
+    <!-- Active View Area -->
+    <div class="main-content" id="mainContent"></div>
+  </div>
+</div>
+
+<script>
+  // Configuration Block
+  const VALID_USERNAME = "jerrypayne0069@gmail.com";
+  const VALID_PASSWORD = "ILOVEYOUBECKY";
+  
+  let navigationTimeout;
+  let nextGreetingIsTimeBased = true;
+
+  function login() {
+    const u = document.getElementById("usernameInput").value.trim();
+    const p = document.getElementById("passwordInput").value.trim();
+    if (u === VALID_USERNAME && p === VALID_PASSWORD) {
+      document.getElementById("loginScreen").style.display = "none";
+      document.getElementById("dashboard").style.display = "block";
+      nextGreetingIsTimeBased = true;
+      navigate("dashboard");
+    } else {
+      document.getElementById("loginError").textContent = "❌ Invalid credentials.";
+    }
+  }
+
+  function logout() {
+    document.getElementById("dashboard").style.display = "none";
+    document.getElementById("loginScreen").style.display = "flex";
+    document.getElementById("usernameInput").value = "";
+    document.getElementById("passwordInput").value = "";
+    clearTimeout(navigationTimeout);
+    closeDrawer();
+  }
+
+  function toggleDrawer() {
+    document.getElementById("drawer").classList.toggle("open");
+    document.getElementById("drawerOverlay").classList.toggle("open");
+  }
+  function closeDrawer() {
+    document.getElementById("drawer").classList.remove("open");
+    document.getElementById("drawerOverlay").classList.remove("open");
+  }
+
+  window.addEventListener('scroll', () => {
+    if (document.getElementById("drawer").classList.contains("open")) {
+      closeDrawer();
+    }
+  });
+
+  function getGreeting() {
+    if (nextGreetingIsTimeBased) {
+      nextGreetingIsTimeBased = false;
+      const hour = new Date().getHours();
+      if (hour >= 5 && hour < 12) return "Good morning";
+      if (hour >= 12 && hour < 18) return "Good afternoon";
+      if (hour >= 18 && hour < 22) return "Good evening";
+      return "Good night";
+    } else {
+      nextGreetingIsTimeBased = true;
+      return "Welcome back";
+    }
+  }
+
+  function navigate(page) {
+    closeDrawer();
+    clearTimeout(navigationTimeout);
+    
+    // UI Active Menu State Updating
+    document.querySelectorAll(".drawer-nav li").forEach(li => li.classList.remove("active"));
+    document.querySelectorAll(".drawer-nav li").forEach(li => {
+      if (li.textContent.toLowerCase().includes(page.toLowerCase())) li.classList.add("active");
+    });
+    
+    // Clear icons unread indicators if explicitly navigating to those views
+    if (page === 'notifications') document.getElementById('notifIcon').classList.remove('unread');
+    if (page === 'messages') document.getElementById('msgIcon').classList.remove('unread');
+
+    const content = document.getElementById("mainContent");
+    content.innerHTML = `
+      <div class="loader-container">
+        <div class="spinner"></div>
+        <div class="loading-text">Securing end-to-end line...</div>
+      </div>`;
+      
+    navigationTimeout = setTimeout(() => {
+      switch(page) {
+        case "dashboard": renderDashboard(); break;
+        case "portfolio": renderPortfolio(); break;
+        case "assets": renderAssets(); break;
+        case "transactions": renderTransactions(); break;
+        case "trust": renderTrust(); break;
+        case "beneficiaries": renderBeneficiaries(); break;
+        case "documents": renderDocuments(); break;
+        case "compliance": renderCompliance(); break;
+        case "security": renderSecurity(); break;
+        case "reports": renderReports(); break;
+        case "notifications": renderNotifications(); break;
+        case "messages": renderMessages(); break;
+        case "support": renderSupport(); break;
+        case "settings": renderSettings(); break;
+        default: renderDashboard();
+      }
+    }, 600);
+  }
+
+  // View Modality Rendering Implementations
+  function renderDashboard() {
+    const greeting = getGreeting();
+    const html = `
+      <div class="card" style="padding:1.2rem;">
+        <div class="user-profile-header">
+          <img src="photo.jpg" alt="Jerry H. Payne Portrait" class="profile-avatar-dashboard">
+          <div>
+            <div class="greeting">${greeting},</div>
+            <div style="font-size:1.4rem;font-weight:600;color:var(--primary-dark);line-height:1.2;">Jerry H. Payne</div>
+          </div>
+        </div>
+        <div style="margin-top:1rem; border-top:1px solid var(--border); padding-top:0.75rem; display:flex; justify-content:space-between; align-items:flex-end;">
+          <div>
+            <div style="font-size:0.7rem;text-transform:uppercase;color:var(--text-secondary);">Total Assets Valuation</div>
+            <div style="font-size:2.2rem;font-weight:800;color:var(--primary-dark); line-height:1.1;">$13,900,000</div>
+          </div>
+          <span class="badge badge-active" style="margin-bottom:0.25rem;">Active</span>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card stat-card" onclick="navigate('assets')" style="cursor:pointer;"><h5>Cash (Transit Box)</h5><div class="amount">$6.9M</div><span class="badge badge-restricted">Locked</span></div>
+        <div class="card stat-card" onclick="navigate('assets')" style="cursor:pointer;"><h5>Real Estate</h5><div class="amount">$7.0M</div><span class="badge badge-restricted">Deeds in Box</span></div>
+      </div>
+      <div class="card collapsible" id="reqCollapsible">
+        <div class="collapsible-header" onclick="toggleCollapsible('reqCollapsible')"><span><i class="fas fa-clipboard-list"></i> Requirements & Status</span> <i class="fas fa-chevron-down"></i></div>
+        <div class="collapsible-content">
+          <table>
+            <thead><tr><th>Requirement Parameter</th><th>Status Metric</th></tr></thead>
+            <tbody>
+              <tr><td>Next of Kin (Becky Honestly)</td><td><span class="badge badge-verified">Verified</span></td></tr>
+              <tr><td>Legitimate Spouse Registration</td><td><span class="badge badge-pending">Unfulfilled</span></td></tr>
+              <tr><td>Structural Verification Milestone</td><td><span class="badge badge-restricted">On Hold</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card"><h3><i class="fas fa-chart-pie"></i> Asset Allocation</h3><canvas id="pieChart" height="160"></canvas></div>`;
+    document.getElementById("mainContent").innerHTML = html;
+    setTimeout(() => {
+      const ctx = document.getElementById('pieChart');
+      if (ctx) new Chart(ctx, { type: 'doughnut', data: { labels: ['Cash Component','Real Estate Block'], datasets: [{ data: [49.6,50.4], backgroundColor: ['#1E3A8A','#10B981'] }] }, options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } } } });
+    }, 0);
+  }
+
+  function renderPortfolio() {
+    const html = `
+      <div class="card"><h3><i class="fas fa-chart-bar"></i> Structural Breakdown</h3><canvas id="barChart" height="160"></canvas></div>
+      <div class="card"><h3><i class="fas fa-chart-pie"></i> Current Balance Mix</h3><canvas id="portfolioPie" height="160"></canvas></div>
+      <div class="card">
+        <h3><i class="fas fa-list"></i> Asset Portfolio Register</h3>
+        <table>
+          <thead><tr><th>Asset Class</th><th>Certified Value</th><th>Allocation %</th></tr></thead>
+          <tbody>
+            <tr class="interactive-row" onclick="navigate('assets')"><td>Liquid Funds Account</td><td>$6,900,000</td><td>49.6%</td></tr>
+            <tr class="interactive-row" onclick="navigate('assets')"><td>Fixed Property Holdings</td><td>$7,000,000</td><td>50.4%</td></tr>
+            <tr style="font-weight:700; background:#F8FAFC;"><td>Total Estate Pool</td><td>$13,900,000</td><td>100.0%</td></tr>
+          </tbody>
+        </table>
+      </div>`;
+    document.getElementById("mainContent").innerHTML = html;
+    setTimeout(() => {
+      const barCtx = document.getElementById('barChart');
+      const pieCtx = document.getElementById('portfolioPie');
+      if (barCtx) new Chart(barCtx, { type: 'bar', data: { labels: ['Cash Assets','Real Estate'], datasets: [{ label: 'Millions USD', data: [6.9,7.0], backgroundColor: ['#1E3A8A','#10B981'], borderRadius:6 }] }, options: { responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} } });
+      if (pieCtx) new Chart(pieCtx, { type: 'doughnut', data: { labels: ['Cash Assets','Real Estate'], datasets: [{ data: [49.6,50.4], backgroundColor: ['#1E3A8A','#10B981'] }] }, options: { plugins: { legend: { position: 'bottom' } } } });
+    }, 0);
+  }
+
+  function renderAssets() {
+    const html = `
+      <div class="card"><h3><i class="fas fa-chart-pie"></i> Distribution View</h3><canvas id="assetPie" height="160"></canvas></div>
+      <div class="card"><h3><i class="fas fa-chart-line"></i> Cash Account Growth (2021‑2026)</h3><canvas id="assetLine" height="160"></canvas></div>
+      <div class="card">
+        <h3><i class="fas fa-building"></i> Real Estate Property Ledger</h3>
+        <table>
+          <thead><tr><th>Asset Description</th><th>Assessed Evaluation</th></tr></thead>
+          <tbody>
+            <tr><td>Commercial Real Estate Block A</td><td>$4,200,000</td></tr>
+            <tr><td>Residential Estate Block Portfolio</td><td>$2,800,000</td></tr>
+            <tr style="font-weight:600;"><td>Total Real Estate Appraisal</td><td>$7,000,000</td></tr>
+          </tbody>
+        </table>
+      </div>`;
+    document.getElementById("mainContent").innerHTML = html;
+    setTimeout(() => {
+      const pieCtx = document.getElementById('assetPie');
+      if (pieCtx) new Chart(pieCtx, { type: 'doughnut', data: { labels: ['Cash Vault Pool','Real Estate Property'], datasets: [{ data: [49.6,50.4], backgroundColor: ['#1E3A8A','#10B981'] }] }, options: { plugins:{legend:{position:'bottom'}} } });
+      const lineCtx = document.getElementById('assetLine');
+      if (lineCtx) new Chart(lineCtx, { type: 'line', data: { labels: ['2021','2022','2023','2024','2025','2026'], datasets: [{ label: 'Liquidity Reserve ($M)', data: [5.0,5.4,5.8,6.2,6.6,6.9], borderColor: '#1E3A8A', backgroundColor: 'rgba(30,58,138,0.05)', tension:0.2, fill:true }] }, options: { responsive:true, plugins:{legend:{display:false}} } });
+    }, 0);
+  }
+
+  function renderTransactions() {
+    document.getElementById("mainContent").innerHTML = `
+      <div class="card" style="text-align:center; padding:3rem 1.5rem;">
+        <i class="fas fa-receipt" style="font-size:2.5rem; color:var(--text-secondary); margin-bottom:1rem;"></i>
+        <h3 style="color:var(--primary-dark); font-weight:600; justify-content:center; margin-bottom:0.5rem;">Transactions Frozen</h3>
+        <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:1.5rem; line-height:1.4;">All outbound ledger transfers and operational asset extractions are frozen pending compliance approval.</p>
+        <div style="border-top:1px dashed var(--border); padding-top:1rem; text-align:left;">
+          <div style="font-size:0.7rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:0.5rem;">System Block Log</div>
+          <div style="font-size:0.8rem; color:var(--error); font-family:monospace; background:#FEF2F2; padding:0.6rem; border-radius:0.5rem; border:1px solid #FEE2E2;">
+            ERR_CODE: #AT-BLOCK-403<br>REASON: Spousal verification requirement unmet.
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function renderTrust() {
+    document.getElementById("mainContent").innerHTML = `
+      <div class="card">
+        <h3><i class="fas fa-gavel"></i> Jerry H. Payne Irrevocable Trust</h3>
+        <p style="font-size:0.85rem; color:var(--text-secondary); line-height:1.5;">
+          <strong>Classification:</strong> Irrevocable Administrative Structure<br>
+          <strong>Date Established:</strong> 2018<br>
+          <strong>Corporate Trustee:</strong> Aurora Trust Company LLC
+        </p>
+      </div>
+      <div class="card">
+        <h3><i class="fas fa-history"></i> Communication History (2001‑2015)</h3>
+        <table>
+          <thead><tr><th>Timeline</th><th>Historical Framework Action</th></tr></thead>
+          <tbody>
+            <tr><td>2001</td><td>Initial trust structures and baseline wealth protection parameters established.</td></tr>
+            <tr><td>2005</td><td>Strategic high-yield real estate assets officially logged into core holdings.</td></tr>
+            <tr><td>2009</td><td>Portfolio reallocation update and internal asset valuation checklist review.</td></tr>
+            <tr><td>2012</td><td>Heirloom declaration verified; Becky Honestly added as structural beneficiary.</td></tr>
+            <tr><td>2015</td><td>Final baseline administrative validation protocol locked into secure vault system.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card" style="border-left: 4px solid var(--primary-royal); background: #FAF9F6;">
+        <h3 style="color: var(--primary-dark); font-size: 0.95rem; margin-bottom: 0.4rem;"><i class="fas fa-shield-alt"></i> Legal Oversight Mandate (2015‑2026)</h3>
+        <p style="font-size:0.85rem; color: var(--text-secondary); line-height: 1.45;">
+          Per the governing trust executive orders, the designated attorney maintains full supervisory structural oversight from <strong>2015 to 2026</strong>. This mandate ensures relentless custody and protection over all asset units alongside Aurora Trust Co.
+        </p>
+      </div>`;
+  }
+
+  function renderBeneficiaries() {
+    document.getElementById("mainContent").innerHTML = `
+      <div class="card">
+        <h3><i class="fas fa-users"></i> Beneficiary Allocation Matrix</h3>
+        <table>
+          <thead><tr><th>Entity Role</th><th>Identity Assignment</th><th>Allotted Pool</th></tr></thead>
+          <tbody>
+            <tr><td>Primary Beneficiary</td><td>Becky Honestly</td><td><span class="badge badge-info">100% Core Pool</span></td></tr>
+            <tr><td>Legitimate Spouse Requirement</td><td>Conditional Verification</td><td><span class="badge badge-pending">30% Cash Extract</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h3><i class="fas fa-info-circle"></i> Special Conditions Notice</h3>
+        <p style="font-size:0.85rem; color:var(--text-secondary); line-height:1.4;">
+          The transfer of asset shares to next-of-kin assignments is managed directly by the legal execution group. Distributions require formal clearance from the attorney in charge.
+        </p>
+      </div>`;
+  }
+
+  function renderDocuments() {
+    document.getElementById("mainContent").innerHTML = `
+      <div class="card">
+        <h3><i class="fas fa-folder-open"></i> Document Vault System</h3>
+        <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:1rem;">Cryptographic repository enclosing asset titles, corporate instruments, and historical declarations.</p>
+        <div style="display:flex; flex-direction:column; gap:0.6rem;">
+          <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:0.8rem; margin:0; border-color:var(--border);">
+            <span><i class="fas fa-file-contract" style="color:var(--primary-royal); margin-right:0.5rem;"></i> Testamentary Will Instrument</span>
+            <span class="badge badge-info" style="cursor:pointer;" onclick="alert('Document View Protocol: Certified copy on record with Thomas Gilpin.')">Review</span>
+          </div>
+          <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:0.8rem; margin:0; border-color:var(--border);">
+            <span><i class="fas fa-file-pdf" style="color:var(--error); margin-right:0.5rem;"></i> Unclaimed Holdings Audits</span>
+            <span class="badge badge-restricted">Locked</span>
+          </div>
+          <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:0.8rem; margin:0; border-color:var(--border);">
+            <span><i class="fas fa-home" style="color:var(--success); margin-right:0.5rem;"></i> Deeds & Real Estate Titles</span>
+            <span class="badge badge-restricted">Locked</span>
+          </div>
+          <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:0.8rem; margin:0; border-color:var(--border);">
+            <span><i class="fas fa-certificate" style="color:var(--primary-royal); margin-right:0.5rem;"></i> Core Asset Certificates</span>
+            <span class="badge badge-restricted">Encrypted</span>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function renderCompliance() {
+    document.getElementById("mainContent").innerHTML = `
+      <div class="card">
+        <h3><i class="fas fa-check-circle"></i> AML/KYC Structural Compliance</h3>
+        <table>
+          <thead><tr><th>Evaluation Domain</th><th>Current Audit Status</th></tr></thead>
+          <tbody>
+            <tr><td>KYC / Identity Provenance</td><td><span class="badge badge-verified">Fully Validated</span></td></tr>
+            <tr><td>Anti-Money Laundering Cleared</td><td><span class="badge badge-verified">Passed</span></td></tr>
+            <tr><td>CRS / FATCA Inter-Agency Declaration</td><td><span class="badge badge-pending">Under Final Review</span></td></tr>
+            <tr><td>Spousal Validation Certification</td><td><span class="badge badge-restricted">Deficient</span></td></tr>
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  function renderSecurity() {
+    const html = `
+      <div class="card">
+        <h3><i class="fas fa-shield-alt"></i> Client Security Dashboard</h3>
+        <div id="locationStatus" style="font-size:0.9rem; padding:0.5rem 0;">
+          <i class="fas fa-spinner fa-pulse" style="color:var(--primary-royal); margin-right:0.5rem;"></i> Resolving terminal node credentials...
+        </div>
+        <div style="margin-top:1rem; padding-top:0.75rem; border-top:1px solid var(--border); font-size:0.85rem; line-height:1.5;">
+          <p><strong>Two-Factor Auth (2FA):</strong> <span style="color:var(--success); font-weight:600;">ACTIVE</span></p>
+          <p><strong>Cryptographic Tunnel:</strong> End-to-End AES-256 GCM</p>
+          <p><strong>Node Identity Check:</strong> Verified Authorized System</p>
+        </div>
+      </div>`;
+    document.getElementById("mainContent").innerHTML = html;
+    setTimeout(() => {
+      const statusDiv = document.getElementById("locationStatus");
+      if (statusDiv) {
+        setTimeout(() => {
+          statusDiv.innerHTML = '<i class="fas fa-map-marker-alt" style="color:var(--success); margin-right:0.5rem;"></i> Terminal Location: United States Node Detected';
+          setTimeout(() => {
+            statusDiv.innerHTML = '<i class="fas fa-ban" style="color:var(--error); margin-right:0.5rem;"></i> Access Location Overridden by Trust Mandate';
+            const note = document.createElement('div');
+            note.style.fontSize = '0.8rem';
+            note.style.color = 'var(--text-secondary)';
+            note.style.marginTop = '0.4rem';
+            note.style.background = '#F8FAFC';
+            note.style.padding = '0.5rem';
+            note.style.borderRadius = '0.4rem';
+            note.innerHTML = '<strong>System Constraint:</strong> Direct transactional liquidation from this endpoint is blocked by compliance regulations.';
+            statusDiv.appendChild(note);
+          }, 1200);
+        }, 1200);
+      }
+    }, 0);
+  }
+
+  function renderReports() {
+    document.getElementById("mainContent").innerHTML = `
+      <div class="card">
+        <h3><i class="fas fa-file-invoice"></i> Financial Reporting Suite</h3>
+        <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1rem;">Access tax declarations, periodic assessments, and regulatory audits.</p>
+        <table style="font-size:0.8rem;">
+          <thead><tr><th>Statement File</th><th>Period</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td>Annual Fiduciary Summary</td><td>2025 Retrospective</td><td><span class="badge badge-info" style="cursor:pointer;" onclick="alert('Downloading...')">PDF</span></td></tr>
+            <tr><td>Asset Ledger Summary</td><td>Q1 2026</td><td><span class="badge badge-info" style="cursor:pointer;" onclick="alert('Downloading...')">PDF</span></td></tr>
+            <tr><td>Tax Valuation Transcript</td><td>2025 Document</td><td><span class="badge badge-info" style="cursor:pointer;" onclick="alert('Downloading...')">PDF</span></td></tr>
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  function renderNotifications() {
+    document.getElementById("mainContent").innerHTML = `
+      <div class="card">
+        <h3><i class="fas fa-bell"></i> Operational System Alerts</h3>
+        <div style="display:flex; flex-direction:column; gap:0.75rem;">
+          <div style="padding:0.75rem; border-left:3px solid var(--primary-royal); background:var(--bg); border-radius:0 0.5rem 0.5rem 0;">
+            <div style="display:flex; justify-content:between; font-weight:600; font-size:0.85rem;"><span>Trust Timeline Adjusted</span><span style="margin-left:auto; font-size:0.7rem; color:var(--text-secondary);">Recent</span></div>
+            <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.2rem;">Historical communication history map (2001-2015) and oversight mandate guidelines (2015-2026) updated successfully.</p>
+          </div>
+          <div style="padding:0.75rem; border-left:3px solid var(--error); background:var(--bg); border-radius:0 0.5rem 0.5rem 0;">
+            <div style="display:flex; justify-content:between; font-weight:600; font-size:0.85rem;"><span>Compliance Alert flag</span><span style="margin-left:auto; font-size:0.7rem; color:var(--text-secondary);">System</span></div>
+            <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.2rem;">Distribution requirements outstanding: Legitimate spousal record missing.</p>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function renderMessages() {
+    document.getElementById("mainContent").innerHTML = `
+      <div class="card">
+        <h3><i class="fas fa-envelope"></i> Confidential Messaging Node</h3>
+        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+          <div class="card" style="margin:0; padding:0.75rem; border-color:var(--border); cursor:pointer;" onclick="alert('Message context: Checking on distribution prerequisites updates.')">
+            <div style="font-weight:600; font-size:0.85rem; color:var(--primary-royal);">Attorney Thomas Gilpin</div>
+            <div style="font-size:0.8rem; font-weight:500; margin:0.1rem 0;">Subject: Monthly Status Inquiry Update</div>
+            <p style="font-size:0.75rem; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Please specify if the registry documentation for validation has been processed...</p>
+          </div>
+          <div class="card" style="margin:0; padding:0.75rem; border-color:var(--border); cursor:pointer;" onclick="alert('Message context: Annual notification check.')">
+            <div style="font-weight:600; font-size:0.85rem; color:var(--primary-dark);">Aurora Corporate Administrator</div>
+            <div style="font-size:0.8rem; font-weight:500; margin:0.1rem 0;">Subject: System Review Statements Generated</div>
+            <p style="font-size:0.75rem; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">The annual operational audit logs are ready for secure structural navigation...</p>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function renderSupport() {
+    document.getElementById("mainContent").innerHTML = `
+      <div class="card">
+        <h3><i class="fas fa-headset"></i> Private Administrative Channels</h3>
+        <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1rem;">Direct communication routing to the designated estate supervisors and counsel.</p>
+        <div style="display:flex; flex-direction:column; gap:0.75rem;">
+          <div style="background:var(--bg); padding:0.75rem; border-radius:0.5rem; border:1px solid var(--border);">
+            <div style="font-size:0.7rem; text-transform:uppercase; color:var(--text-secondary); font-weight:600;">Counsel In Charge</div>
+            <div style="font-weight:600; color:var(--primary-dark); font-size:0.95rem;">Thomas Gilpin</div>
+            <div style="font-size:0.8rem; color:var(--primary-royal); margin-top:0.1rem;">thomasgilpindinsmore@gmail.com</div>
+          </div>
+          <div style="background:var(--bg); padding:0.75rem; border-radius:0.5rem; border:1px solid var(--border);">
+            <div style="font-size:0.7rem; text-transform:uppercase; color:var(--text-secondary); font-weight:600;">Trust Desk Line</div>
+            <div style="font-weight:600; color:var(--primary-dark); font-size:0.95rem;">Aurora Trust Advisory Team</div>
+            <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.1rem;">Secure Route: +1 (555) 234-5678</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function renderSettings() {
+    document.getElementById("mainContent").innerHTML = `
+      <div class="card">
+        <div class="settings-section">
+          <h3><i class="fas fa-users"></i> Estate Core Profile</h3>
+          <div style="text-align: center; margin-bottom: 1.25rem;">
+             <img src="photo.jpg" alt="Jerry H. Payne Portrait" style="width: 5rem; height: 5rem; border-radius: 50%; object-fit: cover; border: 3px solid var(--border); margin-bottom: 0.5rem;">
+             <div style="font-weight: 600; color: var(--primary-dark); font-size:1.1rem;">Jerry H. Payne</div>
+             <div style="font-size: 0.8rem; color: var(--text-secondary);">Member Certificate Since: 1994</div>
+          </div>
+          <div class="form-group"><label>Assigned Next of Kin</label><input value="Becky Honestly" readonly></div>
+          <div class="form-group"><label>Spouse Record Registration</label><input value="Unfulfilled" readonly style="color:var(--error); font-weight:500;"></div>
+          <div class="form-group"><label>Marital Status Registry</label><input value="Not Married" readonly></div>
+        </div>
+        <div class="settings-section">
+          <h3><i class="fas fa-lock"></i> Authentication Preferences</h3>
+          <div class="toggle-switch"><span>Enforce Two‑Factor Security</span><div class="toggle-track active" onclick="this.classList.toggle('active')"></div></div>
+          <div class="toggle-switch"><span>Biometric Validation Bypass</span><div class="toggle-track" onclick="this.classList.toggle('active')"></div></div>
+        </div>
+        <div class="settings-section">
+          <h3><i class="fas fa-bell"></i> Notification Criteria</h3>
+          <div class="toggle-switch"><span>Email Activity Statements</span><div class="toggle-track active" onclick="this.classList.toggle('active')"></div></div>
+          <div class="toggle-switch"><span>System Update Bulletins</span><div class="toggle-track active" onclick="this.classList.toggle('active')"></div></div>
+        </div>
+      </div>`;
+  }
+
+  function toggleCollapsible(id) {
+    document.getElementById(id).classList.toggle("open");
+  }
+</script>
+</body>
+</html>
